@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>询价提醒助手 · 设置</title>
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-container">
+    <header>
+      <h1>&#x1F514; 询价提醒助手 · 设置</h1>
+    </header>
+
+    <!-- 一、微信推送配置 -->
+    <section class="card">
+      <h2>&#x1F4F1; 微信推送配置</h2>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="wechatEnabled"> 启用微信推送
+        </label>
+      </div>
+      <div class="form-group">
+        <label>推送服务</label>
+        <select id="serviceType">
+          <option value="wxpusher">WxPusher（推荐）</option>
+          <option value="serverchan">Server酱</option>
+          <option value="webhook">自定义 Webhook</option>
+        </select>
+      </div>
+      <div id="wxpusherFields">
+        <div class="form-group">
+          <label>AppToken</label>
+          <input type="text" id="appToken" placeholder="WxPusher 的 APP Token">
+        </div>
+        <div class="form-group">
+          <label>UID</label>
+          <input type="text" id="uid" placeholder="你的 WxPusher UID">
+        </div>
+      </div>
+      <div id="serverchanFields" style="display:none">
+        <div class="form-group">
+          <label>SendKey</label>
+          <input type="text" id="sendKey" placeholder="Server酱的 SendKey">
+        </div>
+      </div>
+      <div id="webhookFields" style="display:none">
+        <div class="form-group">
+          <label>Webhook URL</label>
+          <input type="text" id="webhookUrl" placeholder="https://your-webhook-url.com/api/notify">
+        </div>
+      </div>
+      <button id="testWechat" class="btn btn-secondary">📤 发送测试消息</button>
+      <span id="testResult" class="test-result"></span>
+    </section>
+
+    <!-- 二、提醒配置 -->
+    <section class="card">
+      <h2>&#x23F0; 提醒配置</h2>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="reminderEnabled"> 启用提醒
+        </label>
+      </div>
+      <div class="form-group">
+        <label>提前多久开始提醒（小时）</label>
+        <input type="number" id="startBeforeHours" value="48" min="1" max="168" step="1">
+      </div>
+      <h3>提醒间隔配置</h3>
+      <div class="interval-config">
+        <div class="interval-row">
+          <span>距截止 48 小时内</span>
+          <input type="number" id="int48h" value="1440" min="1"> 分钟
+        </div>
+        <div class="interval-row">
+          <span>距截止 24 小时内</span>
+          <input type="number" id="int24h" value="720" min="1"> 分钟
+        </div>
+        <div class="interval-row">
+          <span>距截止 12 小时内</span>
+          <input type="number" id="int12h" value="360" min="1"> 分钟
+        </div>
+        <div class="interval-row">
+          <span>距截止 6 小时内</span>
+          <input type="number" id="int6h" value="120" min="1"> 分钟
+        </div>
+        <div class="interval-row">
+          <span>距截止 2 小时内</span>
+          <input type="number" id="int2h" value="30" min="1"> 分钟
+        </div>
+        <div class="interval-row">
+          <span>距截止 30 分钟内</span>
+          <input type="number" id="int30m" value="10" min="1"> 分钟
+        </div>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="notifyAfterExpired"> 过期后提醒一次
+        </label>
+      </div>
+    </section>
+
+    <!-- 三、其他 -->
+    <section class="card">
+      <h2>&#x1F4E6; 数据管理</h2>
+      <div class="action-row">
+        <button id="exportData" class="btn btn-secondary">📥 导出数据 (JSON)</button>
+        <button id="clearData" class="btn btn-danger">🗑 清空本地数据</button>
+      </div>
+    </section>
+
+    <!-- 保存 -->
+    <div class="save-bar">
+      <button id="saveAll" class="btn btn-primary btn-lg">💾 保存所有设置</button>
+      <span id="saveStatus"></span>
+    </div>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
