@@ -175,11 +175,18 @@ function generateId() {
  * 规则：1) URL 相同 2) 询价标题+截止时间相同 3) 页面标题+截止时间相同
  */
 function findDuplicateIndex(projects, project) {
-  for (let i = 0; i < projects.length; i++) {
-    const p = projects[i];
-    // URL+标题相同才算重复（同页面不同项目不重复）
-    if (p.url && project.url && p.url === project.url && p.title === project.title) return i;
-    if (p.title === project.title && p.deadline === project.deadline) return i;
+  // 以询价单号为唯一去重条件
+  const newNo = project.inquiryNo;
+  if (newNo && newNo !== '未识别询价单号') {
+    for (let i = 0; i < projects.length; i++) {
+      if (projects[i].inquiryNo === newNo) return i;
+    }
+  } else {
+    // 无单号时用标题+截止时间兜底
+    for (let i = 0; i < projects.length; i++) {
+      const p = projects[i];
+      if (p.title === project.title && p.deadline === project.deadline) return i;
+    }
   }
   return -1;
 }
