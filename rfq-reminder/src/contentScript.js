@@ -187,6 +187,7 @@ function parseTableRows() {
     if (detectedNoCol !== colMap.noCol) break;
   }
   window.__rfqColOffset = detectedNoCol - colMap.noCol;
+  window.__rfqDetectedNoCol = detectedNoCol;
 
   // 检查是否数据列数 > 表头列数（欧贝有隐藏RP列），需要偏移
   let colOffset = 0;
@@ -375,7 +376,7 @@ function getDebugInfo() {
     tableInfo: tableInfo.join(' | '),
     bodyTextLen: (document.body?.innerText || '').length,
     headers: hdrs.join(', '),
-    colMap: `no=auto→${detectedNoCol} title=${cm.titleCol}+${colOff}=${cm.titleCol+colOff} pub=${cm.pubCol}+${colOff}=${cm.pubCol+colOff} dl=${cm.dlCol}+${colOff}=${cm.dlCol+colOff} offset=${colOff}`,
+    colMap: `no=auto→${window.__rfqDetectedNoCol||'?'} title=${cm.titleCol}+${colOff}=${cm.titleCol+colOff} pub=${cm.pubCol}+${colOff}=${cm.pubCol+colOff} dl=${cm.dlCol}+${colOff}=${cm.dlCol+colOff} offset=${colOff}`,
     rawCells: rawCellRows.join('\n'),
   };
 }
