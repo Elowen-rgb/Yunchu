@@ -24,10 +24,10 @@
       <button class="filter-tab" data-filter="all">&#x1F4CB; 全部</button>
     </nav>
 
-    <!-- 调试面板（点击展开） -->
-    <div id="debugPanel" style="display:none;background:#fef3c7;margin:0 14px 8px;padding:4px 8px;border-radius:6px;font-size:10px;line-height:1.5;cursor:pointer;">
-      <div id="debugToggle" style="font-weight:bold;">🔍 识别详情（点击展开）</div>
-      <div id="debugContent" style="display:none;margin-top:4px;"></div>
+    <!-- 调试面板（默认完全隐藏） -->
+    <div id="debugPanel" style="display:none;background:#fef3c7;margin:0 14px 4px;padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;overflow:hidden;max-height:20px;transition:max-height 0.3s;">
+      <div id="debugToggle" style="font-weight:bold;font-size:10px;">🔍 调试详情 ▾</div>
+      <div id="debugContent" style="margin-top:2px;line-height:1.4;"></div>
     </div>
 
     <!-- 项目列表 -->

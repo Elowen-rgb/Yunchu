@@ -59,13 +59,14 @@ async function handleScanPage() {
     const data = response.data;
 
     if (response.isBatch && response.batch && response.batch.length > 1) {
-      let saved = 0;
+      let saved = 0, updated = 0;
       for (const item of response.batch) {
         const r = await addProject(item);
         if (r.added) saved++;
+        else updated++;
       }
-      showDebug(data);
-      showToast(`✅ 批量导入 ${saved} 条（共 ${response.batch.length} 条）\n新项目默认不提醒，请点击「确认提醒」`);
+      showDebug(data, `识别到 ${response.batch.length} 条，新增 ${saved} 条，已存在 ${updated} 条`);
+      showToast(`✅ 新增 ${saved} 条（识别 ${response.batch.length} 条）\n🔕 默认不提醒，勾选后点「批量确认」`);
     } else {
       showDebug(data);
       const result = await addProject(data);
@@ -268,24 +269,23 @@ function updateCount() {
   document.getElementById('projectCount').textContent = `${total} 个项目，${pending} 待处理，${remind} 已开提醒`;
 }
 
-function showDebug(data) {
+function showDebug(data, extraMsg = '') {
   const panel = document.getElementById('debugPanel');
   const content = document.getElementById('debugContent');
   const toggle = document.getElementById('debugToggle');
   panel.style.display = 'block';
-  content.style.display = 'none';
+  panel.style.maxHeight = '18px';
 
-  // 点击展开/收起
-  panel.onclick = (e) => {
-    if (e.target === toggle || e.target.parentElement === panel || e.target === toggle) {
-      content.style.display = content.style.display === 'none' ? 'block' : 'none';
-    }
+  panel.onclick = () => {
+    panel.style.maxHeight = panel.style.maxHeight === '18px' ? '300px' : '18px';
+    toggle.textContent = toggle.textContent.includes('▾') ? '🔍 调试详情 ▴' : '🔍 调试详情 ▾';
   };
 
   const d = data.__debug || {};
   const raw = data.rawTextSample || '(无)';
   const dlStr = data.deadline ? new Date(data.deadline).toLocaleString('zh-CN') : '❌ 未识别';
   content.innerHTML = `
+    ${extraMsg ? `<div style="color:#92400e;font-weight:bold;">📊 ${esc(extraMsg)}</div>` : ''}
     <div>🔧 v${esc(d.version||'?')} | 表格:${d.tableCount||'?'} | ${esc(d.colMap||'')}</div>
     📋 标题: <b>${esc(data.title||'?')}</b><br>
     👤 发布人: <b>${esc(data.publisher||'?')}</b><br>
