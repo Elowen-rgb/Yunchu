@@ -3,13 +3,13 @@
    ============================ */
 
 :root {
-  --bg: #f3f4f6;
-  --card-bg: #ffffff;
-  --text: #1a1a2e;
-  --text-secondary: #6b7280;
-  --border: #e5e7eb;
-  --primary: #2563eb;
-  --danger: #dc2626;
+  --bg: #f7f0e6;
+  --card-bg: #fdfaf5;
+  --text: #3d2e1c;
+  --text-secondary: #8b7355;
+  --border: #e5d5c0;
+  --primary: #8b5e3c;
+  --danger: #c44b3c;
   --radius: 10px;
 }
 
