@@ -121,10 +121,8 @@ function filterProjects(projects, filter, now) {
       return projects.filter((p) => {
         if (p.status !== STATUS.PENDING) return false;
         const mins = getRemainingMinutes(p.deadline, now);
-        return mins >= 0 && mins <= 48 * 60;
+        return mins >= 0 && mins <= 24 * 60;  // 24小时内
       });
-    case 'today':
-      return projects.filter((p) => p.status === STATUS.PENDING && isDueToday(p.deadline, now));
     case 'expired':
       return projects.filter((p) => isExpired(p.deadline, now) && p.status !== STATUS.QUOTED && p.status !== STATUS.ABANDONED);
     case 'all':
@@ -136,8 +134,7 @@ function filterProjects(projects, filter, now) {
 
 function getEmptyMsg(filter) {
   switch (filter) {
-    case 'urgent': return '暂无即将到期的项目 🎉';
-    case 'today': return '今天没有到期的项目';
+    case 'urgent': return '暂无24小时内到期的项目 🎉';
     case 'expired': return '没有过期未处理的项目';
     case 'all': return '暂无询价项目';
     default: return '暂无数据';
@@ -288,11 +285,12 @@ function showDebug(data) {
   const raw = data.rawTextSample || '(无)';
   const dlStr = data.deadline ? new Date(data.deadline).toLocaleString('zh-CN') : '❌ 未识别';
   content.innerHTML = `
-    <div>🔧 v${esc(d.version||'?')} | 表格:${d.tableCount||'?'} | 文本:${d.bodyTextLen||'?'}字${d.headers ? ' | 表头:'+esc(d.headers) : ''}${d.colMap ? ' | 列映射:'+esc(d.colMap) : ''}</div>
+    <div>🔧 v${esc(d.version||'?')} | 表格:${d.tableCount||'?'} | ${esc(d.colMap||'')}</div>
     📋 标题: <b>${esc(data.title||'?')}</b><br>
     👤 发布人: <b>${esc(data.publisher||'?')}</b><br>
     📄 单号: <b>${esc(data.inquiryNo||'?')}</b><br>
     ⏰ 截止: <b>${dlStr}</b><br>
+    ${d.rawCells ? '<div style="margin-top:4px;color:#92400e;">📋 原始单元格:<br><pre style="font-size:9px;max-height:80px;overflow:auto;">'+esc(d.rawCells)+'</pre></div>' : ''}
     <details style="margin-top:4px;"><summary style="cursor:pointer;color:#2563eb;">📝 原始文本</summary>
     <pre style="max-height:120px;overflow:auto;background:#fff;padding:4px;border-radius:4px;font-size:10px;white-space:pre-wrap;word-break:break-all;">${esc(raw)}</pre></details>`;
 }

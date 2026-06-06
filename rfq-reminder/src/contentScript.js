@@ -207,8 +207,21 @@ function parseTableRows() {
     }
   }
 
-  // 调试：保存第一行 raw cells
-  if (items.length && !window.__rfqFirstRow) window.__rfqFirstRow = items.slice(0, 3);
+  // 调试：保存前3行原始单元格
+  if (items.length && !window.__rfqRawCells) {
+    const rawRows = [];
+    for (const t of tables) {
+      for (const row of t.querySelectorAll('tr')) {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+          rawRows.push(Array.from(cells).map((c) => c.textContent.trim()).join(' | '));
+          if (rawRows.length >= 3) break;
+        }
+      }
+      if (rawRows.length >= 3) break;
+    }
+    window.__rfqRawCells = rawRows;
+  }
 
   return items;
 }
@@ -327,6 +340,7 @@ function getDebugInfo() {
   });
   const cm = window.__rfqColMap || {};
   const hdrs = window.__rfqHeaders || [];
+  const rawCells = window.__rfqRawCells || [];
   return {
     version: CS_VERSION,
     tableCount: tables.length,
@@ -334,5 +348,6 @@ function getDebugInfo() {
     bodyTextLen: (document.body?.innerText || '').length,
     headers: hdrs.join(', '),
     colMap: `title=${cm.titleCol} pub=${cm.pubCol} no=${cm.noCol} dl=${cm.dlCol}`,
+    rawCells: rawCells.join('\n'),
   };
 }
