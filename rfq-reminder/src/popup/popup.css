@@ -110,21 +110,23 @@ body {
 /* ---- Filter Tabs ---- */
 .filter-tabs {
   display: flex;
-  gap: 4px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--border);
-  overflow-x: auto;
+  flex-wrap: nowrap;
 }
 .filter-tab {
-  padding: 4px 12px;
+  flex-shrink: 0;
+  padding: 5px 14px;
   border-radius: 16px;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   background: var(--bg);
   font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s;
   color: var(--text-secondary);
+  line-height: 1.4;
 }
 .filter-tab.active {
   background: var(--primary);
@@ -135,6 +137,8 @@ body {
 }
 .filter-tab:hover:not(.active) {
   background: var(--bg-secondary);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* ---- Project List ---- */
