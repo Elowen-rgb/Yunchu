@@ -10,7 +10,7 @@
   <div class="popup-container">
     <!-- 头部 -->
     <header class="header">
-      <h1>&#x1F514; 询价提醒助手</h1>
+      <h1>🐱 小猫询价插件</h1>
       <div class="header-actions">
         <button id="scanBtn" class="btn btn-primary">识别本页询价</button>
         <button id="optionsLink" class="btn btn-icon" title="设置">&#x2699;</button>
@@ -24,12 +24,6 @@
       <button class="filter-tab" data-filter="all">&#x1F4CB; 全部</button>
     </nav>
 
-    <!-- 调试按钮 -->
-    <div id="debugPanel" style="display:none;text-align:center;padding:2px 0;">
-      <button id="debugToggle" style="font-size:10px;padding:1px 8px;border-radius:3px;border:1px solid #d1d5db;background:#f9fafb;color:#9ca3af;cursor:pointer;">🔍</button>
-      <div id="debugContent" style="display:none;background:#fef3c7;margin:2px 14px 4px;padding:4px 8px;border-radius:4px;font-size:10px;line-height:1.4;text-align:left;"></div>
-    </div>
-
     <!-- 项目列表 -->
     <div id="projectList" class="project-list">
       <div class="empty-state">
@@ -42,8 +36,12 @@
     <!-- 底部 -->
     <footer class="footer">
       <span id="projectCount">0 个项目</span>
+      <span style="flex:1;"></span>
+      <button id="debugToggle" style="display:none;font-size:10px;padding:1px 8px;border-radius:10px;border:1px solid #f9a8d4;background:#fdf2f8;color:#db2777;cursor:pointer;">🔍 调试</button>
       <button id="openOptions" class="btn btn-sm">更多设置</button>
     </footer>
+    <!-- 调试内容（footer下方） -->
+    <div id="debugContent" style="display:none;background:#fef3c7;margin:0 14px 4px;padding:4px 8px;border-radius:4px;font-size:10px;line-height:1.4;text-align:left;"></div>
   </div>
 
   <script type="module" src="popup.js"></script>

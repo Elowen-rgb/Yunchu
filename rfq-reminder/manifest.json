@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "询价提醒助手",
-  "version": "1.0.0",
-  "description": "自动识别网页中的询价项目，截止前48小时高频微信提醒。专为供应商老板设计。",
+  "name": "小猫询价插件",
+  "version": "2.0.0",
+  "description": "🐱 自动识别网页中的询价项目，截止前24小时高频微信提醒。粉色小猫陪你盯报价~",
   "permissions": [
     "storage",
     "notifications",

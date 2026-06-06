@@ -3,22 +3,22 @@
    ============================ */
 
 :root {
-  --bg: #ffffff;
-  --bg-secondary: #f5f7fa;
-  --text: #1a1a2e;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --border: #e5e7eb;
-  --primary: #2563eb;
-  --primary-light: #dbeafe;
-  --danger: #dc2626;
-  --danger-light: #fef2f2;
-  --success: #16a34a;
-  --success-light: #f0fdf4;
-  --warning: #f59e0b;
+  --bg: #fff5f7;
+  --bg-secondary: #fdf2f8;
+  --text: #4a1942;
+  --text-secondary: #9d6b8a;
+  --text-muted: #c4a4b5;
+  --border: #f9d2e4;
+  --primary: #db2777;
+  --primary-light: #fdf2f8;
+  --danger: #e11d48;
+  --danger-light: #fff1f2;
+  --success: #059669;
+  --success-light: #ecfdf5;
+  --warning: #d97706;
   --warning-light: #fffbeb;
-  --radius: 8px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(219,39,119,0.08);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

@@ -270,13 +270,10 @@ function updateCount() {
 }
 
 function showDebug(data, extraMsg = '') {
-  const panel = document.getElementById('debugPanel');
   const content = document.getElementById('debugContent');
   const toggle = document.getElementById('debugToggle');
-  panel.style.display = 'block';
+  toggle.style.display = 'inline-block';
   content.style.display = 'none';
-  if (extraMsg) toggle.textContent = '🔍';
-  else toggle.textContent = '🔍';
 
   toggle.onclick = (e) => {
     e.stopPropagation();
