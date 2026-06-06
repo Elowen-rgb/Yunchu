@@ -45,7 +45,13 @@ async function loadConfigs() {
   document.getElementById('wechatEnabled').checked = wechatConfig.enabled;
   document.getElementById('serviceType').value = wechatConfig.serviceType || 'wxpusher';
   document.getElementById('appToken').value = wechatConfig.appToken || '';
-  document.getElementById('uid').value = wechatConfig.uid || '';
+  // uid 现在是 textarea，支持多行/逗号分隔
+  const uidEl = document.getElementById('uid');
+  if (Array.isArray(wechatConfig.uid)) {
+    uidEl.value = wechatConfig.uid.join(', ');
+  } else {
+    uidEl.value = wechatConfig.uid || '';
+  }
   document.getElementById('sendKey').value = wechatConfig.sendKey || '';
   document.getElementById('webhookUrl').value = wechatConfig.webhookUrl || '';
 

@@ -104,6 +104,17 @@ export class WeChatPushAdapter {
       return;
     }
 
+    // 支持多个 UID，用逗号或中英文逗号分隔
+    const uids = String(this.config.uid)
+      .split(/[,，]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (!uids.length) {
+      console.warn('[询价提醒] 没有有效的 UID');
+      return;
+    }
+
     try {
       const res = await fetch('https://wxpusher.zjiecode.com/api/send/message', {
         method: 'POST',
@@ -111,13 +122,15 @@ export class WeChatPushAdapter {
         body: JSON.stringify({
           appToken: this.config.appToken,
           content: `${title}\n\n${body}`,
-          contentType: 1, // 文本
-          uids: [this.config.uid],
+          contentType: 1,
+          uids,
         }),
       });
       const data = await res.json();
       if (data.code !== 1000) {
         console.error('[询价提醒] WxPusher 推送失败:', data.msg);
+      } else {
+        console.log(`[询价提醒] WxPusher 已推送给 ${uids.length} 位用户`);
       }
     } catch (err) {
       console.error('[询价提醒] WxPusher 请求失败:', err.message);
