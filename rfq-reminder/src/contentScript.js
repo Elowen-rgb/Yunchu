@@ -139,26 +139,38 @@ function parsePage() {
 // ---- 消息监听 ----
 // ---- 表格批量解析 ----
 function parseTableRows() {
-  const items = [];
   const tables = document.querySelectorAll('table');
-  for (const table of tables) {
-    const headers = [];
-    table.querySelectorAll('th').forEach((th) => headers.push(th.textContent.trim()));
 
-    const colMap = {
-      titleCol: findColIdx(headers, ['询价标题', '采购标题', '标题']),
-      pubCol: findColIdx(headers, ['发布人', '采购员', '联系人']),
-      noCol: findColIdx(headers, ['询价单号', '询价编号', '单号', '编号']),
-      dlCol: findColIdx(headers, ['报价起止时间', '报价截止', '截止时间', '截止日期']),
-    };
-    if (colMap.titleCol < 0) continue;
+  // 第一步：找表头（th 所在行）
+  let headers = [];
+  for (const t of tables) {
+    const ths = t.querySelectorAll('th');
+    if (ths.length >= 3) {
+      ths.forEach((th) => headers.push(th.textContent.trim()));
+      break;
+    }
+  }
+  if (!headers.length) return [];
 
-    table.querySelectorAll('tbody tr, tr').forEach((row) => {
+  const colMap = {
+    titleCol: findColIdx(headers, ['询价标题', '采购标题', '标题']),
+    pubCol: findColIdx(headers, ['发布人', '采购员', '联系人']),
+    noCol: findColIdx(headers, ['询价单号', '询价编号', '单号', '编号']),
+    dlCol: findColIdx(headers, ['报价起止时间', '报价截止', '截止时间', '截止日期']),
+  };
+  if (colMap.titleCol < 0) return [];
+
+  // 第二步：遍历所有表格找数据行
+  const items = [];
+  for (const t of tables) {
+    const rows = t.querySelectorAll('tr');
+    for (const row of rows) {
       const cells = row.querySelectorAll('td');
-      if (cells.length < 3) return;
+      if (cells.length < 4) continue; // 数据行至少有 4 列
       const get = (c) => (c >= 0 && c < cells.length) ? cells[c].textContent.trim() : '';
       const title = get(colMap.titleCol);
-      if (!title || headers.some((h) => title === h)) return;
+      // 跳过表头重复行
+      if (!title || headers.includes(title)) continue;
 
       const dlRaw = get(colMap.dlCol);
       let deadline = null;
@@ -171,8 +183,7 @@ function parseTableRows() {
         url: window.location.href, source: window.location.hostname,
         pageTitle: document.title,
       });
-    });
-    if (items.length) break;
+    }
   }
   return items;
 }
