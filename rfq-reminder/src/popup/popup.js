@@ -225,12 +225,22 @@ function updateCount() {
 function showDebug(data) {
   const panel = document.getElementById('debugPanel');
   const content = document.getElementById('debugContent');
+  const toggle = document.getElementById('debugToggle');
   panel.style.display = 'block';
+  content.style.display = 'none';
+
+  // 点击展开/收起
+  panel.onclick = (e) => {
+    if (e.target === toggle || e.target.parentElement === panel || e.target === toggle) {
+      content.style.display = content.style.display === 'none' ? 'block' : 'none';
+    }
+  };
+
   const d = data.__debug || {};
   const raw = data.rawTextSample || '(无)';
   const dlStr = data.deadline ? new Date(data.deadline).toLocaleString('zh-CN') : '❌ 未识别';
   content.innerHTML = `
-    <div>🔧 v${esc(d.version||'?')} | 表格:${d.tableCount||'?'} | 文本:${d.bodyTextLen||'?'}字</div>
+    <div>🔧 v${esc(d.version||'?')} | 表格:${d.tableCount||'?'} | 文本:${d.bodyTextLen||'?'}字${d.headers ? ' | 表头:'+esc(d.headers) : ''}${d.colMap ? ' | 列映射:'+esc(d.colMap) : ''}</div>
     📋 标题: <b>${esc(data.title||'?')}</b><br>
     👤 发布人: <b>${esc(data.publisher||'?')}</b><br>
     📄 单号: <b>${esc(data.inquiryNo||'?')}</b><br>

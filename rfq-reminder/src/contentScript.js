@@ -163,6 +163,10 @@ function parseTableRows() {
   };
   if (colMap.titleCol < 0) return [];
 
+  // 全局保存列映射用于调试
+  window.__rfqColMap = colMap;
+  window.__rfqHeaders = headers;
+
   // 第二步：遍历所有表格找数据行
   const items = [];
   for (const t of tables) {
@@ -303,10 +307,14 @@ function getDebugInfo() {
     const rows = t.querySelectorAll('tr');
     tableInfo.push(`表${i}: th=${ths.length} tr=${rows.length}`);
   });
+  const cm = window.__rfqColMap || {};
+  const hdrs = window.__rfqHeaders || [];
   return {
     version: CS_VERSION,
     tableCount: tables.length,
     tableInfo: tableInfo.join(' | '),
     bodyTextLen: (document.body?.innerText || '').length,
+    headers: hdrs.join(', '),
+    colMap: `title=${cm.titleCol} pub=${cm.pubCol} no=${cm.noCol} dl=${cm.dlCol}`,
   };
 }
