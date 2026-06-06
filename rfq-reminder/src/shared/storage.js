@@ -176,9 +176,9 @@ function generateId() {
 function findDuplicateIndex(projects, project) {
   for (let i = 0; i < projects.length; i++) {
     const p = projects[i];
-    if (p.url && project.url && p.url === project.url) return i;
+    // URL+标题相同才算重复（同页面不同项目不重复）
+    if (p.url && project.url && p.url === project.url && p.title === project.title) return i;
     if (p.title === project.title && p.deadline === project.deadline) return i;
-    if (p.pageTitle === project.pageTitle && p.deadline === project.deadline) return i;
   }
   return -1;
 }

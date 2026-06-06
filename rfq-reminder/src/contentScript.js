@@ -28,8 +28,8 @@ function parseDate(str) {
   if (!str || typeof str !== 'string') return null;
   str = str.trim();
 
-  // 日期范围 "2026-06-04 15:00~ 2026-06-08 09:00" → 取结束时间
-  const rangeMatch = str.match(/~.*?(\d{4}[-/]\d{1,2}[-/]\d{1,2}[\sT]+\d{1,2}:\d{2})/);
+  // 日期范围 "2026-06-04 15:00~2026-06-08 09:00" → 取结束时间
+  const rangeMatch = str.match(/~\s*(\d{4}[-/]\d{1,2}[-/]\d{1,2}\s+\d{1,2}:\d{2})/);
   if (rangeMatch) {
     const endDate = parseDate(rangeMatch[1]);
     if (endDate) return endDate;
