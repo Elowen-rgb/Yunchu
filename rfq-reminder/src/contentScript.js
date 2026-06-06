@@ -207,22 +207,6 @@ function parseTableRows() {
     }
   }
 
-  // 调试：保存前3行原始单元格
-  if (items.length && !window.__rfqRawCells) {
-    const rawRows = [];
-    for (const t of tables) {
-      for (const row of t.querySelectorAll('tr')) {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 5) {
-          rawRows.push(Array.from(cells).map((c) => c.textContent.trim()).join(' | '));
-          if (rawRows.length >= 3) break;
-        }
-      }
-      if (rawRows.length >= 3) break;
-    }
-    window.__rfqRawCells = rawRows;
-  }
-
   return items;
 }
 function findColIdx(headers, names) {
@@ -232,8 +216,8 @@ function findColIdx(headers, names) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scanPage') {
-    const debug = getDebugInfo();
     const batch = parseTableRows();
+    const debug = getDebugInfo();
     if (batch.length > 0) {
       sendResponse({ success: true, data: { ...batch[0], __debug: debug }, batch, isBatch: true });
     } else {
@@ -333,14 +317,21 @@ console.log('[询价提醒 v' + CS_VERSION + '] Content script 已加载');
 function getDebugInfo() {
   const tables = document.querySelectorAll('table');
   let tableInfo = [];
+  const rawCellRows = [];
   tables.forEach((t, i) => {
     const ths = t.querySelectorAll('th');
     const rows = t.querySelectorAll('tr');
     tableInfo.push(`表${i}: th=${ths.length} tr=${rows.length}`);
+    // 收集前3行原始数据
+    for (const row of rows) {
+      const cells = row.querySelectorAll('td');
+      if (cells.length >= 4 && rawCellRows.length < 3) {
+        rawCellRows.push(Array.from(cells).map((c, ci) => `${ci}:${c.textContent.trim().substring(0,30)}`).join(' | '));
+      }
+    }
   });
   const cm = window.__rfqColMap || {};
   const hdrs = window.__rfqHeaders || [];
-  const rawCells = window.__rfqRawCells || [];
   return {
     version: CS_VERSION,
     tableCount: tables.length,
@@ -348,6 +339,6 @@ function getDebugInfo() {
     bodyTextLen: (document.body?.innerText || '').length,
     headers: hdrs.join(', '),
     colMap: `title=${cm.titleCol} pub=${cm.pubCol} no=${cm.noCol} dl=${cm.dlCol}`,
-    rawCells: rawCells.join('\n'),
+    rawCells: rawCellRows.join('\n'),
   };
 }
