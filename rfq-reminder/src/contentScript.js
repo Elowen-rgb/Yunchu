@@ -1,17 +1,78 @@
 // ============================================================
 // 询价提醒助手 - Content Script
 // 在当前页面中识别询价条目信息
+// 所有依赖内联，确保 MV3 content script 兼容
 // ============================================================
 
-import {
-  TITLE_KEYWORDS, PUBLISHER_KEYWORDS, INQUIRY_NO_KEYWORDS, DEADLINE_KEYWORDS,
-} from './shared/constants.js';
-import { parseDate } from './shared/deadline.js';
+// ---- 关键词定义（与 shared/constants.js 同步） ----
+const TITLE_KEYWORDS = [
+  '询价标题', '标题', '询价名称', '询价项目', '项目名称',
+  '采购标题', '采购项目', '物资名称', '标的物', '采购内容',
+];
+const PUBLISHER_KEYWORDS = [
+  '发布人', '采购员', '采购联系人', '联系人', '经办人',
+  '采购负责人', '业务联系人', '项目联系人',
+];
+const INQUIRY_NO_KEYWORDS = [
+  '询价单号', '询价编号', '询价书编号', 'RFQ编号', 'RFQ No',
+  '单据编号', '单号', '项目编号', '采购编号', '招标编号', 'RFQ',
+];
+const DEADLINE_KEYWORDS = [
+  '报价截止', '报价截止时间', '询价截止', '询价截止时间',
+  '投标截止', '投标截止时间', '响应截止', '响应截止时间',
+  '报名截止', '截止日期', '截止时间', '开标时间',
+];
 
-// ============================================================
-// 页面解析
-// ============================================================
+// ---- 日期解析（与 shared/deadline.js 同步） ----
+function parseDate(str) {
+  if (!str || typeof str !== 'string') return null;
+  str = str.trim();
 
+  // 今天/明天 HH:MM
+  const todayMatch = str.match(/今天\s*(\d{1,2}:\d{2})/);
+  if (todayMatch) return buildDate(new Date(), todayMatch[1]);
+  const tomorrowMatch = str.match(/明天\s*(\d{1,2}:\d{2})/);
+  if (tomorrowMatch) {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return buildDate(d, tomorrowMatch[1]);
+  }
+
+  // XXXX年XX月XX日XX时XX分
+  let m = str.match(/(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日\s*(\d{1,2})\s*时\s*(\d{1,2})\s*分/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+
+  // XXXX年X月X日 HH:MM
+  m = str.match(/(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日\s*[^\d]*(\d{1,2}:\d{2})/);
+  if (m) return buildDateFromYMD(+m[1], +m[2] - 1, +m[3], m[4]);
+
+  // MM月DD日 HH:MM（默认当年）
+  m = str.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日\s*[^\d]*(\d{1,2}:\d{2})/);
+  if (m) return buildDateFromYMD(new Date().getFullYear(), +m[1] - 1, +m[2], m[3]);
+
+  // 2026-06-08 17:00 / 2026/06/08 17:00
+  m = str.match(/(\d{4})\s*[-/]\s*(\d{1,2})\s*[-/]\s*(\d{1,2})[\sT]+(\d{1,2}:\d{2})(?::\d{2})?/);
+  if (m) return buildDateFromYMD(+m[1], +m[2] - 1, +m[3], m[4]);
+
+  // 纯日期 2026-06-08
+  m = str.match(/(\d{4})\s*[-/]\s*(\d{1,2})\s*[-/]\s*(\d{1,2})$/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59);
+
+  return null;
+}
+
+function buildDate(date, timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  date.setHours(h, m, 0, 0);
+  return new Date(date);
+}
+
+function buildDateFromYMD(year, month, day, timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return new Date(year, month, day, h, m, 0);
+}
+
+// ---- 字段提取 ----
 function extractField(keywords, defaultVal, text) {
   if (!text) return defaultVal;
   const lines = text.split(/\n/);
@@ -36,6 +97,7 @@ function extractField(keywords, defaultVal, text) {
   return defaultVal;
 }
 
+// ---- 页面解析 ----
 function parsePage() {
   const bodyText = document.body?.innerText || '';
   const pageTitle = document.title || '';
@@ -63,9 +125,7 @@ function parsePage() {
   };
 }
 
-// ============================================================
-// 监听来自 popup / background 的消息
-// ============================================================
+// ---- 消息监听 ----
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scanPage') {
     const result = parsePage();
@@ -80,30 +140,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'autoFillForm') {
-    // 接收 background 发来的模板数据，尝试填充当前页面表单
-    const template = message.template;
-    autoFillPageForm(template);
+    autoFillPageForm(message.template);
     sendResponse({ success: true });
     return true;
   }
 });
 
-// ============================================================
-// 高亮页面中的询价关键词（可选功能）
-// ============================================================
+// ---- 关键词高亮 ----
 function highlightKeywords() {
   const allKeywords = [
     ...TITLE_KEYWORDS, ...PUBLISHER_KEYWORDS,
     ...INQUIRY_NO_KEYWORDS, ...DEADLINE_KEYWORDS,
   ];
 
-  const walker = document.createTreeWalker(
-    document.body,
-    NodeFilter.SHOW_TEXT,
-    null,
-    false
-  );
-
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
   const textNodes = [];
   while (walker.nextNode()) {
     const node = walker.currentNode;
@@ -115,7 +165,6 @@ function highlightKeywords() {
   for (const node of textNodes) {
     let text = node.textContent;
     let modified = false;
-
     for (const kw of allKeywords) {
       if (text.includes(kw)) {
         text = text.replace(
@@ -125,7 +174,6 @@ function highlightKeywords() {
         modified = true;
       }
     }
-
     if (modified) {
       const span = document.createElement('span');
       span.innerHTML = text;
@@ -138,13 +186,9 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// ============================================================
-// 表单自动填充（预留）
-// ============================================================
+// ---- 表单自动填充 ----
 function autoFillPageForm(template) {
   if (!template) return;
-
-  // 遍历页面中的 input/textarea，尝试匹配模板字段
   const inputs = document.querySelectorAll('input[type="text"], input:not([type]), textarea, select');
   const fieldMap = {
     company: ['公司', '供应商', '企业', '单位', 'company'],
@@ -153,15 +197,13 @@ function autoFillPageForm(template) {
     creditCode: ['信用代码', '统一社会信用代码', '税号', 'credit'],
     address: ['地址', '注册地址', 'address'],
   };
-
   inputs.forEach((input) => {
     const placeholder = (input.placeholder || '').toLowerCase();
-    const name = (input.name || '').toLowerCase();
+    const inputName = (input.name || '').toLowerCase();
     const label = (input.getAttribute('aria-label') || '').toLowerCase();
-
     for (const [key, patterns] of Object.entries(fieldMap)) {
       if (template[key] && patterns.some((p) =>
-        placeholder.includes(p) || name.includes(p) || label.includes(p)
+        placeholder.includes(p) || inputName.includes(p) || label.includes(p)
       )) {
         input.value = template[key];
         input.dispatchEvent(new Event('input', { bubbles: true }));

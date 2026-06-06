@@ -137,8 +137,9 @@ export function getCurrentInterval(deadline, now, reminderConfig) {
   const remaining = getRemainingMinutes(deadline, now);
   if (remaining > reminderConfig.startBeforeHours * 60) return null;
 
+  // 从小到大排序：最精确的区间先匹配
   const intervals = [...reminderConfig.intervals].sort(
-    (a, b) => (b.withinHours || b.withinMinutes / 60) - (a.withinHours || a.withinMinutes / 60)
+    (a, b) => (a.withinHours || a.withinMinutes / 60) - (b.withinHours || b.withinMinutes / 60)
   );
 
   for (const interval of intervals) {
