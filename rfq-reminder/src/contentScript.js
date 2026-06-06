@@ -172,10 +172,14 @@ function parseTableRows() {
   for (const t of tables) {
     for (const row of t.querySelectorAll('tr')) {
       const cells = row.querySelectorAll('td');
-      if (cells.length > headers.length) { colOffset = cells.length - headers.length; break; }
+      if (cells.length > headers.length && cells.length >= 5) {
+        colOffset = cells.length - headers.length;
+        break;
+      }
     }
     if (colOffset) break;
   }
+  window.__rfqColOffset = colOffset;
 
   // 第二步：遍历所有表格找数据行
   const items = [];
@@ -343,13 +347,14 @@ function getDebugInfo() {
   });
   const cm = window.__rfqColMap || {};
   const hdrs = window.__rfqHeaders || [];
+  const colOff = window.__rfqColOffset || 0;
   return {
     version: CS_VERSION,
     tableCount: tables.length,
     tableInfo: tableInfo.join(' | '),
     bodyTextLen: (document.body?.innerText || '').length,
     headers: hdrs.join(', '),
-    colMap: `title=${cm.titleCol} pub=${cm.pubCol} no=${cm.noCol} dl=${cm.dlCol}`,
+    colMap: `title=${cm.titleCol}→${cm.titleCol+colOff} pub=${cm.pubCol}→${cm.pubCol+colOff} no=${cm.noCol}→${cm.noCol+colOff} dl=${cm.dlCol}→${cm.dlCol+colOff} offset=${colOff}`,
     rawCells: rawCellRows.join('\n'),
   };
 }

@@ -109,7 +109,7 @@ function renderProjects() {
   }
 
   filtered = sortByUrgency(filtered, now);
-  const toolbar = renderToolbar();
+  const toolbar = renderToolbar(filtered);
   container.innerHTML = toolbar + filtered.map((p) => renderCard(p, now)).join('');
   bindCardEvents();
   bindBatchEvents();
@@ -141,8 +141,8 @@ function getEmptyMsg(filter) {
   }
 }
 
-function renderToolbar() {
-  const pendings = projects.filter((p) => p.status === STATUS.PENDING && !p.reminderEnabled);
+function renderToolbar(filteredList) {
+  const pendings = filteredList.filter((p) => p.status === STATUS.PENDING && !p.reminderEnabled);
   if (!pendings.length) return '';
   return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0 8px;font-size:11px;">
     <label><input type="checkbox" id="selectAll" style="vertical-align:middle;"> 全选 (${pendings.length}条)</label>
@@ -229,7 +229,8 @@ function bindBatchEvents() {
   const selectAll = document.getElementById('selectAll');
   if (selectAll) {
     selectAll.addEventListener('change', () => {
-      document.querySelectorAll('.item-checkbox').forEach((cb) => { cb.checked = selectAll.checked; });
+      // 只勾选当前可见的（未被筛选隐藏的）
+      document.querySelectorAll('.project-card:not([style*="display:none"]) .item-checkbox').forEach((cb) => { cb.checked = selectAll.checked; });
     });
   }
 
