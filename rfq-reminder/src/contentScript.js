@@ -167,6 +167,27 @@ function parseTableRows() {
   window.__rfqColMap = colMap;
   window.__rfqHeaders = headers;
 
+  // 自动检测询价单号真实列：扫描前几行，找出哪列的值是 XJ/RA 格式（非 RP 内部ID）
+  let detectedNoCol = colMap.noCol;
+  for (const t of tables) {
+    for (const row of t.querySelectorAll('tr')) {
+      const cells = row.querySelectorAll('td');
+      if (cells.length >= 5) {
+        for (let ci = 0; ci < cells.length; ci++) {
+          const v = cells[ci].textContent.trim();
+          // 匹配 XJ0794371A 或 RA26060400574 格式，但排除 RP 开头的内部 ID
+          if (/^[A-Z]{2,4}\d{6,12}[A-Z]?$/.test(v) && !v.startsWith('RP')) {
+            detectedNoCol = ci;
+            break;
+          }
+        }
+        if (detectedNoCol !== colMap.noCol) break;
+      }
+    }
+    if (detectedNoCol !== colMap.noCol) break;
+  }
+  window.__rfqColOffset = detectedNoCol - colMap.noCol;
+
   // 检查是否数据列数 > 表头列数（欧贝有隐藏RP列），需要偏移
   let colOffset = 0;
   for (const t of tables) {
@@ -191,10 +212,10 @@ function parseTableRows() {
       if (cells.length < 5) continue;
 
       const get = (c) => (c >= 0 && c < cells.length) ? cells[c].textContent.trim() : '';
-      // 应用列偏移
+      // 应用列偏移，询价单号用自动检测到的列
       const tc = colMap.titleCol + colOffset;
       const pc = colMap.pubCol + colOffset;
-      const nc = colMap.noCol + colOffset;
+      const nc = detectedNoCol;
       const dc = colMap.dlCol + colOffset;
 
       const title = get(tc);
@@ -354,7 +375,7 @@ function getDebugInfo() {
     tableInfo: tableInfo.join(' | '),
     bodyTextLen: (document.body?.innerText || '').length,
     headers: hdrs.join(', '),
-    colMap: `title=${cm.titleCol}→${cm.titleCol+colOff} pub=${cm.pubCol}→${cm.pubCol+colOff} no=${cm.noCol}→${cm.noCol+colOff} dl=${cm.dlCol}→${cm.dlCol+colOff} offset=${colOff}`,
+    colMap: `no=auto→${detectedNoCol} title=${cm.titleCol}+${colOff}=${cm.titleCol+colOff} pub=${cm.pubCol}+${colOff}=${cm.pubCol+colOff} dl=${cm.dlCol}+${colOff}=${cm.dlCol+colOff} offset=${colOff}`,
     rawCells: rawCellRows.join('\n'),
   };
 }
