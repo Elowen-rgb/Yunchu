@@ -113,6 +113,9 @@ function parsePage() {
     }
   }
 
+  // 截取前 3000 字符用于调试
+  const rawTextSample = bodyText.substring(0, 3000);
+
   return {
     title: extractField(TITLE_KEYWORDS, '未识别询价标题', bodyText),
     publisher: extractField(PUBLISHER_KEYWORDS, '未识别发布人', bodyText),
@@ -122,6 +125,7 @@ function parsePage() {
     url,
     source,
     pageTitle,
+    rawTextSample,
   };
 }
 
