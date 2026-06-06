@@ -167,6 +167,16 @@ function parseTableRows() {
   window.__rfqColMap = colMap;
   window.__rfqHeaders = headers;
 
+  // 检查是否数据列数 > 表头列数（欧贝有隐藏RP列），需要偏移
+  let colOffset = 0;
+  for (const t of tables) {
+    for (const row of t.querySelectorAll('tr')) {
+      const cells = row.querySelectorAll('td');
+      if (cells.length > headers.length) { colOffset = cells.length - headers.length; break; }
+    }
+    if (colOffset) break;
+  }
+
   // 第二步：遍历所有表格找数据行
   const items = [];
   const seen = new Set();
@@ -174,21 +184,22 @@ function parseTableRows() {
     const rows = t.querySelectorAll('tr');
     for (const row of rows) {
       const cells = row.querySelectorAll('td');
-      if (cells.length < 5) continue; // 数据表至少5列（欧贝的序号+单号+标题+时间+发布人）
+      if (cells.length < 5) continue;
 
       const get = (c) => (c >= 0 && c < cells.length) ? cells[c].textContent.trim() : '';
-      const title = get(colMap.titleCol);
+      // 应用列偏移
+      const tc = colMap.titleCol + colOffset;
+      const pc = colMap.pubCol + colOffset;
+      const nc = colMap.noCol + colOffset;
+      const dc = colMap.dlCol + colOffset;
+
+      const title = get(tc);
       if (!title || headers.includes(title)) continue;
 
-      let inquiryNo = get(colMap.noCol);
-      // 如果询价单号列没找到或不像标准格式，尝试用正则从整行提取
-      if (!inquiryNo || inquiryNo === '未识别询价单号' || inquiryNo.length > 30) {
-        const rowText = Array.from(cells).map((c) => c.textContent.trim()).join(' ');
-        const noMatch = rowText.match(/\b([A-Z]{2,4}\d{6,12}[A-Z]?)\b/);
-        if (noMatch) inquiryNo = noMatch[1];
-      }
+      const inquiryNo = get(nc) || '未识别询价单号';
+      const publisher = get(pc) || '未识别发布人';
 
-      const dlRaw = get(colMap.dlCol);
+      const dlRaw = get(dc);
       let deadline = null;
       if (dlRaw) { const p = parseDate(dlRaw); if (p && !isNaN(p.getTime())) deadline = p.toISOString(); }
 
@@ -198,8 +209,8 @@ function parseTableRows() {
       seen.add(key);
 
       items.push({
-        title, publisher: get(colMap.pubCol) || '未识别发布人',
-        inquiryNo: inquiryNo || '未识别询价单号',
+        title, publisher,
+        inquiryNo,
         deadline, deadlineRaw: dlRaw,
         url: window.location.href, source: window.location.hostname,
         pageTitle: document.title,
