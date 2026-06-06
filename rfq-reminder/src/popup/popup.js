@@ -289,13 +289,15 @@ function showDebug(data) {
     ? new Date(data.deadline).toLocaleString('zh-CN')
     : '❌ 未识别';
 
-  const rawText = data.rawTextSample || '(页面无文本内容，可能是动态加载)';
+  const debug = data.__debug || {};
+  const rawText = data.rawTextSample || '(无)';
   content.innerHTML = `
-    📋 标题: <b>${escapeHtml(data.title)}</b><br>
-    👤 发布人: <b>${escapeHtml(data.publisher)}</b><br>
-    📄 单号: <b>${escapeHtml(data.inquiryNo)}</b><br>
+    <div style="margin-bottom:4px;">🔧 脚本版本: <b>${escapeHtml(debug.version || '?')}</b> | 表格: ${debug.tableCount || '?'}个 | 文本: ${debug.bodyTextLen || '?'}字 | ${escapeHtml(debug.tableInfo || '')}</div>
+    📋 标题: <b>${escapeHtml(data.title || '?')}</b><br>
+    👤 发布人: <b>${escapeHtml(data.publisher || '?')}</b><br>
+    📄 单号: <b>${escapeHtml(data.inquiryNo || '?')}</b><br>
     ⏰ 截止时间: <b>${deadlineStr}</b><br>
-    🌐 来源: ${escapeHtml(data.source)}<br>
+    🌐 来源: ${escapeHtml(data.source || '?')}<br>
     <details style="margin-top:4px;"><summary style="cursor:pointer;color:#2563eb;">📝 查看页面原始文本</summary>
     <pre style="max-height:120px;overflow:auto;background:#fff;padding:4px;border-radius:4px;font-size:10px;white-space:pre-wrap;word-break:break-all;">${escapeHtml(rawText)}</pre>
     </details>

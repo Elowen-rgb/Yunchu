@@ -183,11 +183,15 @@ function findColIdx(headers, names) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scanPage') {
+    const debug = getDebugInfo();
     const batch = parseTableRows();
     if (batch.length > 0) {
-      sendResponse({ success: true, data: batch[0], batch, isBatch: true });
+      sendResponse({ success: true, data: { ...batch[0], __debug: debug }, batch, isBatch: true });
     } else {
-      sendResponse({ success: true, data: parsePage() });
+      const single = parsePage();
+      single.__debug = debug;
+      single.rawTextSample = (document.body?.innerText || '').substring(0, 3000);
+      sendResponse({ success: true, data: single });
     }
     return true;
   }
@@ -273,4 +277,22 @@ function autoFillPageForm(template) {
   });
 }
 
-console.log('[询价提醒] Content script 已加载');
+const CS_VERSION = '2.0-obei';
+console.log('[询价提醒 v' + CS_VERSION + '] Content script 已加载');
+
+// 在返回数据中附带版本和调试信息
+function getDebugInfo() {
+  const tables = document.querySelectorAll('table');
+  let tableInfo = [];
+  tables.forEach((t, i) => {
+    const ths = t.querySelectorAll('th');
+    const rows = t.querySelectorAll('tr');
+    tableInfo.push(`表${i}: th=${ths.length} tr=${rows.length}`);
+  });
+  return {
+    version: CS_VERSION,
+    tableCount: tables.length,
+    tableInfo: tableInfo.join(' | '),
+    bodyTextLen: (document.body?.innerText || '').length,
+  };
+}
