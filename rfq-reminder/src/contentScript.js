@@ -169,29 +169,47 @@ function parseTableRows() {
 
   // 第二步：遍历所有表格找数据行
   const items = [];
+  const seen = new Set();
   for (const t of tables) {
     const rows = t.querySelectorAll('tr');
     for (const row of rows) {
       const cells = row.querySelectorAll('td');
-      if (cells.length < 4) continue; // 数据行至少有 4 列
+      if (cells.length < 5) continue; // 数据表至少5列（欧贝的序号+单号+标题+时间+发布人）
+
       const get = (c) => (c >= 0 && c < cells.length) ? cells[c].textContent.trim() : '';
       const title = get(colMap.titleCol);
-      // 跳过表头重复行
       if (!title || headers.includes(title)) continue;
+
+      let inquiryNo = get(colMap.noCol);
+      // 如果询价单号列没找到或不像标准格式，尝试用正则从整行提取
+      if (!inquiryNo || inquiryNo === '未识别询价单号' || inquiryNo.length > 30) {
+        const rowText = Array.from(cells).map((c) => c.textContent.trim()).join(' ');
+        const noMatch = rowText.match(/\b([A-Z]{2,4}\d{6,12}[A-Z]?)\b/);
+        if (noMatch) inquiryNo = noMatch[1];
+      }
 
       const dlRaw = get(colMap.dlCol);
       let deadline = null;
       if (dlRaw) { const p = parseDate(dlRaw); if (p && !isNaN(p.getTime())) deadline = p.toISOString(); }
 
+      // 去重
+      const key = `${title}|${inquiryNo}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
       items.push({
         title, publisher: get(colMap.pubCol) || '未识别发布人',
-        inquiryNo: get(colMap.noCol) || '未识别询价单号',
+        inquiryNo: inquiryNo || '未识别询价单号',
         deadline, deadlineRaw: dlRaw,
         url: window.location.href, source: window.location.hostname,
         pageTitle: document.title,
       });
     }
   }
+
+  // 调试：保存第一行 raw cells
+  if (items.length && !window.__rfqFirstRow) window.__rfqFirstRow = items.slice(0, 3);
+
   return items;
 }
 function findColIdx(headers, names) {

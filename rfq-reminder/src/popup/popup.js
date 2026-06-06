@@ -109,8 +109,10 @@ function renderProjects() {
   }
 
   filtered = sortByUrgency(filtered, now);
-  container.innerHTML = filtered.map((p) => renderCard(p, now)).join('');
+  const toolbar = renderToolbar();
+  container.innerHTML = toolbar + filtered.map((p) => renderCard(p, now)).join('');
   bindCardEvents();
+  bindBatchEvents();
 }
 
 function filterProjects(projects, filter, now) {
@@ -142,6 +144,16 @@ function getEmptyMsg(filter) {
   }
 }
 
+function renderToolbar() {
+  const pendings = projects.filter((p) => p.status === STATUS.PENDING && !p.reminderEnabled);
+  if (!pendings.length) return '';
+  return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0 8px;font-size:11px;">
+    <label><input type="checkbox" id="selectAll" style="vertical-align:middle;"> 全选 (${pendings.length}条)</label>
+    <button id="batchEnableReminder" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid #f59e0b;background:#fef3c7;color:#92400e;cursor:pointer;">🔔 批量确认</button>
+    <button id="batchDelete" style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer;">🗑 批量删除</button>
+  </div>`;
+}
+
 function renderCard(p, now) {
   const remaining = getRemainingMinutes(p.deadline, now);
   const exp = isExpired(p.deadline, now);
@@ -159,6 +171,7 @@ function renderCard(p, now) {
   return `
     <div class="project-card ${cardClass}" data-id="${p.id}">
       <div class="card-header">
+        <input type="checkbox" class="item-checkbox" data-id="${p.id}" style="flex-shrink:0;margin-right:4px;">
         <span class="card-title" title="${esc(p.title)}">${reminderIcon} ${esc(p.title)}</span>
         <span class="status-tag ${p.status}">${statusLabel}</span>
       </div>
@@ -213,6 +226,41 @@ function bindCardEvents() {
       }
     });
   });
+}
+
+function bindBatchEvents() {
+  const selectAll = document.getElementById('selectAll');
+  if (selectAll) {
+    selectAll.addEventListener('change', () => {
+      document.querySelectorAll('.item-checkbox').forEach((cb) => { cb.checked = selectAll.checked; });
+    });
+  }
+
+  const batchEnable = document.getElementById('batchEnableReminder');
+  if (batchEnable) {
+    batchEnable.addEventListener('click', async () => {
+      const ids = getCheckedIds();
+      if (!ids.length) return showToast('请先勾选项目');
+      for (const id of ids) await updateProject(id, { reminderEnabled: true });
+      showToast(`✅ 已为 ${ids.length} 个项目开启提醒`);
+      await loadProjects();
+    });
+  }
+
+  const batchDelete = document.getElementById('batchDelete');
+  if (batchDelete) {
+    batchDelete.addEventListener('click', async () => {
+      const ids = getCheckedIds();
+      if (!ids.length) return showToast('请先勾选项目');
+      for (const id of ids) await deleteProject(id);
+      showToast(`🗑 已删除 ${ids.length} 个项目`);
+      await loadProjects();
+    });
+  }
+}
+
+function getCheckedIds() {
+  return Array.from(document.querySelectorAll('.item-checkbox:checked')).map((cb) => cb.dataset.id);
 }
 
 function updateCount() {
