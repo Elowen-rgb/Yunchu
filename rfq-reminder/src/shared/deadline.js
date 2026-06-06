@@ -177,6 +177,11 @@ export function shouldNotify(project, now, reminderConfig) {
     return { shouldNotify: false, reason: '提醒功能未启用' };
   }
 
+  // 1.5 项目未确认提醒
+  if (project.reminderEnabled === false) {
+    return { shouldNotify: false, reason: '项目提醒未确认' };
+  }
+
   // 2. 已报价或已放弃
   if (project.status === STATUS.QUOTED || project.status === STATUS.ABANDONED) {
     return { shouldNotify: false, reason: `项目已${project.status === STATUS.QUOTED ? '报价' : '放弃'}` };

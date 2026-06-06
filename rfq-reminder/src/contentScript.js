@@ -141,13 +141,16 @@ function parsePage() {
 function parseTableRows() {
   const tables = document.querySelectorAll('table');
 
-  // 第一步：找表头（th 所在行）
+  // 第一步：找数据表头（至少有5列且包含"询价标题"，排除筛选表单）
   let headers = [];
   for (const t of tables) {
     const ths = t.querySelectorAll('th');
-    if (ths.length >= 3) {
-      ths.forEach((th) => headers.push(th.textContent.trim()));
-      break;
+    if (ths.length >= 5) {
+      const texts = Array.from(ths).map((th) => th.textContent.trim());
+      if (texts.some((h) => h.includes('询价标题') || h.includes('询价单号'))) {
+        headers = texts;
+        break;
+      }
     }
   }
   if (!headers.length) return [];

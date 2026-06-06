@@ -217,7 +217,7 @@ test('距离截止 23 小时，刚刚提醒过：不提醒', () => {
   const project = {
     deadline, status: 'pending',
     lastNotifiedAt: new Date(Date.now() - 10 * 60000).toISOString(), // 10分钟前刚提醒
-    expiredNotified: false,
+    expiredNotified: false, reminderEnabled: true,
   };
   assert(!shouldNotify(project, new Date(), DEFAULT_CONFIG), '刚刚提醒过不应再提醒');
 });
@@ -227,7 +227,7 @@ test('距离截止 5 小时，2小时前提醒过：提醒', () => {
   const project = {
     deadline, status: 'pending',
     lastNotifiedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
-    expiredNotified: false,
+    expiredNotified: false, reminderEnabled: true,
   };
   assert(shouldNotify(project, new Date(), DEFAULT_CONFIG), '超过间隔应提醒');
 });

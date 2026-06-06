@@ -53,6 +53,7 @@ export async function addProject(project) {
     id: generateId(),
     status: 'pending',
     priority: 'normal',
+    reminderEnabled: false,  // 默认不提醒，需手动确认
     lastSeenAt: now,
     createdAt: now,
     lastNotifiedAt: null,
