@@ -24,10 +24,10 @@
       <button class="filter-tab" data-filter="all">&#x1F4CB; 全部</button>
     </nav>
 
-    <!-- 调试面板（默认完全隐藏） -->
-    <div id="debugPanel" style="display:none;background:#fef3c7;margin:0 14px 4px;padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;overflow:hidden;max-height:20px;transition:max-height 0.3s;">
-      <div id="debugToggle" style="font-weight:bold;font-size:10px;">🔍 调试详情 ▾</div>
-      <div id="debugContent" style="margin-top:2px;line-height:1.4;"></div>
+    <!-- 调试按钮 -->
+    <div id="debugPanel" style="display:none;text-align:center;padding:2px 0;">
+      <button id="debugToggle" style="font-size:10px;padding:1px 8px;border-radius:3px;border:1px solid #d1d5db;background:#f9fafb;color:#9ca3af;cursor:pointer;">🔍</button>
+      <div id="debugContent" style="display:none;background:#fef3c7;margin:2px 14px 4px;padding:4px 8px;border-radius:4px;font-size:10px;line-height:1.4;text-align:left;"></div>
     </div>
 
     <!-- 项目列表 -->

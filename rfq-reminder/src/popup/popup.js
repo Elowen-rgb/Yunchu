@@ -274,11 +274,13 @@ function showDebug(data, extraMsg = '') {
   const content = document.getElementById('debugContent');
   const toggle = document.getElementById('debugToggle');
   panel.style.display = 'block';
-  panel.style.maxHeight = '18px';
+  content.style.display = 'none';
+  if (extraMsg) toggle.textContent = '🔍';
+  else toggle.textContent = '🔍';
 
-  panel.onclick = () => {
-    panel.style.maxHeight = panel.style.maxHeight === '18px' ? '300px' : '18px';
-    toggle.textContent = toggle.textContent.includes('▾') ? '🔍 调试详情 ▴' : '🔍 调试详情 ▾';
+  toggle.onclick = (e) => {
+    e.stopPropagation();
+    content.style.display = content.style.display === 'none' ? 'block' : 'none';
   };
 
   const d = data.__debug || {};
