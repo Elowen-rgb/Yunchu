@@ -100,6 +100,11 @@ async function handleScanPage() {
 // 渲染
 // ============================================================
 function renderProjects() {
+  // 确保 tab active 状态正确
+  document.querySelectorAll('.filter-tab').forEach((t) => {
+    t.classList.toggle('active', t.dataset.filter === currentFilter);
+  });
+
   const container = document.getElementById('projectList');
   const now = new Date();
   let filtered = filterProjects(projects, currentFilter, now);
