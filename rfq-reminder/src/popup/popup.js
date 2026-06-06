@@ -74,15 +74,23 @@ async function handleScanPage() {
 
     const data = response.data;
 
-    // 显示调试信息
-    showDebug(data);
-
-    const result = await addProject(data);
-
-    if (result.added) {
-      showToast('✅ 询价项目已保存');
+    // 批量识别
+    if (response.isBatch && response.batch && response.batch.length > 1) {
+      let saved = 0;
+      for (const item of response.batch) {
+        const r = await addProject(item);
+        if (r.added) saved++;
+      }
+      showDebug(data);
+      showToast(`✅ 批量导入 ${saved} 条（共 ${response.batch.length} 条）`);
     } else {
-      showToast('ℹ️ 项目已存在，已更新');
+      showDebug(data);
+      const result = await addProject(data);
+      if (result.added) {
+        showToast('✅ 询价项目已保存');
+      } else {
+        showToast('ℹ️ 项目已存在，已更新');
+      }
     }
 
     await loadProjects();

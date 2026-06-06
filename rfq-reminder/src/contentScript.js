@@ -18,7 +18,7 @@ const INQUIRY_NO_KEYWORDS = [
   '单据编号', '单号', '项目编号', '采购编号', '招标编号', 'RFQ',
 ];
 const DEADLINE_KEYWORDS = [
-  '报价截止', '报价截止时间', '询价截止', '询价截止时间',
+  '报价截止', '报价截止时间', '报价起止时间', '询价截止', '询价截止时间',
   '投标截止', '投标截止时间', '响应截止', '响应截止时间',
   '报名截止', '截止日期', '截止时间', '开标时间',
 ];
@@ -27,6 +27,13 @@ const DEADLINE_KEYWORDS = [
 function parseDate(str) {
   if (!str || typeof str !== 'string') return null;
   str = str.trim();
+
+  // 日期范围 "2026-06-04 15:00~ 2026-06-08 09:00" → 取结束时间
+  const rangeMatch = str.match(/~.*?(\d{4}[-/]\d{1,2}[-/]\d{1,2}[\sT]+\d{1,2}:\d{2})/);
+  if (rangeMatch) {
+    const endDate = parseDate(rangeMatch[1]);
+    if (endDate) return endDate;
+  }
 
   // 今天/明天 HH:MM
   const todayMatch = str.match(/今天\s*(\d{1,2}:\d{2})/);
@@ -130,23 +137,72 @@ function parsePage() {
 }
 
 // ---- 消息监听 ----
+// ---- 表格批量解析 ----
+function parseTableRows() {
+  const items = [];
+  const tables = document.querySelectorAll('table');
+  for (const table of tables) {
+    const headers = [];
+    table.querySelectorAll('th').forEach((th) => headers.push(th.textContent.trim()));
+
+    const colMap = {
+      titleCol: findColIdx(headers, ['询价标题', '采购标题', '标题']),
+      pubCol: findColIdx(headers, ['发布人', '采购员', '联系人']),
+      noCol: findColIdx(headers, ['询价单号', '询价编号', '单号', '编号']),
+      dlCol: findColIdx(headers, ['报价起止时间', '报价截止', '截止时间', '截止日期']),
+    };
+    if (colMap.titleCol < 0) continue;
+
+    table.querySelectorAll('tbody tr, tr').forEach((row) => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 3) return;
+      const get = (c) => (c >= 0 && c < cells.length) ? cells[c].textContent.trim() : '';
+      const title = get(colMap.titleCol);
+      if (!title || headers.some((h) => title === h)) return;
+
+      const dlRaw = get(colMap.dlCol);
+      let deadline = null;
+      if (dlRaw) { const p = parseDate(dlRaw); if (p && !isNaN(p.getTime())) deadline = p.toISOString(); }
+
+      items.push({
+        title, publisher: get(colMap.pubCol) || '未识别发布人',
+        inquiryNo: get(colMap.noCol) || '未识别询价单号',
+        deadline, deadlineRaw: dlRaw,
+        url: window.location.href, source: window.location.hostname,
+        pageTitle: document.title,
+      });
+    });
+    if (items.length) break;
+  }
+  return items;
+}
+function findColIdx(headers, names) {
+  for (const n of names) { const i = headers.findIndex((h) => h.includes(n)); if (i >= 0) return i; }
+  return -1;
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scanPage') {
-    const result = parsePage();
-    sendResponse({ success: true, data: result });
+    const batch = parseTableRows();
+    if (batch.length > 0) {
+      sendResponse({ success: true, data: batch[0], batch, isBatch: true });
+    } else {
+      sendResponse({ success: true, data: parsePage() });
+    }
+    return true;
+  }
+
+  if (message.action === 'scanAll') {
+    const batch = parseTableRows();
+    sendResponse({ success: true, batch, count: batch.length });
     return true;
   }
 
   if (message.action === 'highlightKeywords') {
-    highlightKeywords();
-    sendResponse({ success: true });
-    return true;
+    highlightKeywords(); sendResponse({ success: true }); return true;
   }
-
   if (message.action === 'autoFillForm') {
-    autoFillPageForm(message.template);
-    sendResponse({ success: true });
-    return true;
+    autoFillPageForm(message.template); sendResponse({ success: true }); return true;
   }
 });
 
