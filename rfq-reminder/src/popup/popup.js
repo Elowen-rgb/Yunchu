@@ -68,6 +68,10 @@ async function handleScanPage() {
     if (!response || !response.success) throw new Error('页面识别失败');
 
     const data = response.data;
+
+    // 显示调试信息
+    showDebug(data);
+
     const result = await addProject(data);
 
     if (result.added) {
@@ -272,6 +276,26 @@ function updateCount() {
   const total = projects.length;
   const pending = projects.filter((p) => p.status === STATUS.PENDING).length;
   document.getElementById('projectCount').textContent = `${total} 个项目，${pending} 个待处理`;
+}
+
+function showDebug(data) {
+  const panel = document.getElementById('debugPanel');
+  const content = document.getElementById('debugContent');
+  panel.style.display = 'block';
+
+  const deadlineStr = data.deadline
+    ? new Date(data.deadline).toLocaleString('zh-CN')
+    : '❌ 未识别';
+
+  content.innerHTML = `
+    📋 标题: <b>${escapeHtml(data.title)}</b><br>
+    👤 发布人: <b>${escapeHtml(data.publisher)}</b><br>
+    📄 单号: <b>${escapeHtml(data.inquiryNo)}</b><br>
+    ⏰ 截止时间: <b>${deadlineStr}</b><br>
+    📅 原始日期文本: <code>${escapeHtml(data.deadlineRaw || '(空)')}</code><br>
+    🌐 来源: ${escapeHtml(data.source)}<br>
+    📝 页面标题: ${escapeHtml(data.pageTitle)}
+  `;
 }
 
 function showToast(msg) {
