@@ -130,6 +130,8 @@ body {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(139,94,60,0.3);
+  font-weight: 600;
 }
 .filter-tab:hover:not(.active) {
   background: var(--bg-secondary);
