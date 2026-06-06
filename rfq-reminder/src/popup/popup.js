@@ -64,7 +64,12 @@ async function handleScanPage() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) throw new Error('无法获取当前标签页');
 
-    const response = await chrome.tabs.sendMessage(tab.id, { action: 'scanPage' });
+    // 3 秒超时
+    const response = await Promise.race([
+      chrome.tabs.sendMessage(tab.id, { action: 'scanPage' }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 3000)),
+    ]);
+
     if (!response || !response.success) throw new Error('页面识别失败');
 
     const data = response.data;
@@ -82,33 +87,22 @@ async function handleScanPage() {
 
     await loadProjects();
   } catch (err) {
-    // 如果 content script 未响应，尝试通过 background 处理
-    if (err.message.includes('Could not establish connection')) {
+    const msg = err.message || '';
+
+    if (msg.includes('TIMEOUT') || msg.includes('Could not establish connection')) {
+      // content script 未加载，尝试主动注入
       try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        const response = await chrome.runtime.sendMessage({ action: 'parseInquiry' });
-        if (response?.success && response.text) {
-          // background 返回了页面文本，在这里解析
-          // 简化处理：直接用页面标题和 URL 创建项目
-          await addProject({
-            title: response.pageTitle || '未识别询价标题',
-            publisher: '请手动补充发布人',
-            inquiryNo: '请手动补充单号',
-            deadline: null,
-            url: response.url,
-            source: response.source,
-            pageTitle: response.pageTitle,
-          });
-          showToast('⚠️ 页面信息有限，请手动补充');
-          await loadProjects();
-        } else {
-          showToast('❌ 识别失败，请刷新页面后重试');
-        }
-      } catch (e2) {
-        showToast('❌ 识别失败: ' + e2.message);
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['src/contentScript.js'],
+        });
+        showToast('✅ 已激活，请再点一次识别');
+      } catch (injectErr) {
+        showToast('❌ 请刷新页面后再试（F5刷新当前页）');
       }
     } else {
-      showToast('❌ 识别失败: ' + err.message);
+      showToast('❌ ' + msg);
     }
   } finally {
     btn.textContent = '识别本页询价';
